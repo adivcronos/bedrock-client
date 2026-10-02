@@ -1,3 +1,11 @@
+# bedrock-client
+
+A custom Minecraft: Bedrock Edition client, based on [Latite Client](https://github.com/LatiteClient/Latite) by the Latite team. Licensed under GPL-3.0 like the original.
+
+Builds are made by GitHub Actions (`Latite Nightly` workflow) and uploaded as an artifact.
+
+---
+
 # Latite Client
 
 [![Discord](https://img.shields.io/discord/885656043521179680)](https://discord.gg/GpV3w5tyBs)
