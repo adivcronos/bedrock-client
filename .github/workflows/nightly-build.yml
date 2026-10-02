@@ -1,4 +1,4 @@
-name: Latite Nightly
+name: Client Build
 
 on:
   push:
