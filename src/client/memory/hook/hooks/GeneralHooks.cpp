@@ -134,6 +134,11 @@ bool GenericHooks::GameCore_handleMouseInput(void* a1, void* a2, void* a3) { // 
 
     const auto mouse = SDK::MouseDevice::get();
 
+    {
+        MouseInjectEvent injectEv { mouse->inputs };
+        Eventing::get().dispatch(injectEv);
+    }
+
     for (size_t i = 0; i < mouse->inputs.size(); i++) { // This method sucks, but gets the job done
         auto& start = mouse->inputs.at(i);
         auto it = std::next(mouse->inputs.begin(), i);

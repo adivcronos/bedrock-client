@@ -23,6 +23,7 @@
 #include "events/LatiteClientMessageEvent.h"
 #include "events/LeaveGameEvent.h"
 #include "events/OutlineSelectionEvent.h"
+#include "events/MouseInjectEvent.h"
 #include "events/OverlayColorEvent.h"
 #include "events/PacketReceiveEvent.h"
 #include "events/PerspectiveEvent.h"
