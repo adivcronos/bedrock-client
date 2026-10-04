@@ -2,6 +2,8 @@
 
 A custom Minecraft: Bedrock Edition client, based on [Latite Client](https://github.com/LatiteClient/Latite) by the Latite team. Licensed under GPL-3.0 like the original.
 
+The Keystrokes HUD layout and colours follow [Flarial Client](https://github.com/flarialmc/dll-oss)'s Keystrokes module (AGPL-3.0).
+
 Builds are made by GitHub Actions (`Latite Nightly` workflow) and uploaded as an artifact.
 
 ---
