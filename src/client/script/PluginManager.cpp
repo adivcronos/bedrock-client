@@ -218,7 +218,13 @@ std::expected<void, std::string> PluginManager::installScript(std::string const&
     std::wstring jsonPath = registry + L"/plugins.json";
     nlohmann::json scriptsJson;
 
-    auto http = HttpClient();
+    // Windows.Web.Http is missing under Wine; constructing it throws.
+    HttpClient http { nullptr };
+    try {
+        http = HttpClient();
+    } catch (winrt::hresult_error const& err) {
+        return std::unexpected(util::WStrToStr(err.message().c_str()));
+    }
     {
         // get JSON
         winrt::Windows::Foundation::Uri requestUri(jsonPath);
@@ -296,7 +302,12 @@ std::vector<PluginManager::PluginInfo> PluginManager::fetchPluginsFromMarket() {
     std::wstring jsonPath = registry + L"/plugins.json";
     nlohmann::json scriptsJson;
 
-    auto http = HttpClient();
+    HttpClient http { nullptr };
+    try {
+        http = HttpClient();
+    } catch (winrt::hresult_error const&) {
+        return list;
+    }
     {
         // get JSON
         winrt::Windows::Foundation::Uri requestUri(jsonPath);
