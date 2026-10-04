@@ -7,6 +7,7 @@
 Keystrokes::Keystrokes()
     : HUDModule("Keystrokes", LocalizeString::get("client.hudmodule.keystrokes.name"),
                 LocalizeString::get("client.hudmodule.keystrokes.desc"), HUD) {
+    enabled = BoolValue(true);
     addSetting("mouseButtons", LocalizeString::get("client.hudmodule.keystrokes.mouseButtons.name"),
                LocalizeString::get("client.hudmodule.keystrokes.mouseButtons.desc"), mouseButtons);
     addSetting("showCps", LocalizeString::get("client.hudmodule.keystrokes.showCps.name"),

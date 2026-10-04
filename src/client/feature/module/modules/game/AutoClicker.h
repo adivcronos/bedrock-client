@@ -7,13 +7,27 @@ class AutoClicker : public Module {
 public:
     AutoClicker();
 
+    void loadConfig(SettingGroup& resolvedGroup) override;
+
 private:
     using Clock = std::chrono::steady_clock;
 
     void onMouseInject(Event& ev);
+    void onKey(Event& ev);
+    void applyPreset(int preset, bool announce);
     bool shouldClick();
     bool holdingWeapon();
     void scheduleNextClick(Clock::time_point from);
+
+    static constexpr int preset_custom = 0;
+    static constexpr int preset_human = 1;
+    static constexpr int preset_borderline = 2;
+    static constexpr int preset_blatant = 3;
+    static constexpr int preset_robot = 4;
+    static constexpr int preset_count = 5;
+    EnumData preset;
+    ValueType presetKey = KeyValue('P');
+    bool applyingPreset = false;
 
     static constexpr int mode_hold = 0;
     static constexpr int mode_always = 1;

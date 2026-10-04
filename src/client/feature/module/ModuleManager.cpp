@@ -20,6 +20,7 @@
 #include "modules/game/Freelook.h"
 #include "modules/game/AutoGG.h"
 #include "modules/game/AutoClicker.h"
+#include "modules/hud/ClickStats.h"
 #include "modules/game/HiveTranslate.h"
 #include "modules/game/KillNotification.h"
 #include "modules/game/Gyro.h"
@@ -111,6 +112,7 @@ ModuleManager::ModuleManager() {
     this->items.push_back(std::make_shared<DirectionHud>());
     this->items.push_back(std::make_shared<AutoGG>());
     this->items.push_back(std::make_shared<AutoClicker>());
+    this->items.push_back(std::make_shared<ClickStats>());
     this->items.push_back(std::make_shared<HiveTranslate>());
     this->items.push_back(std::make_shared<FrameTimeDisplay>());
     this->items.push_back(std::make_shared<BlockGame>());

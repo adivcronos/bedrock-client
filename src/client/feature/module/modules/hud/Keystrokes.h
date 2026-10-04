@@ -9,7 +9,7 @@ public:
 
 private:
     ValueType mouseButtons = BoolValue(true);
-    ValueType cps = BoolValue(false);
+    ValueType cps = BoolValue(true);
     ValueType spaceBar = BoolValue(true);
     ValueType border = BoolValue(false);
     ValueType shiftKey = BoolValue(false);
