@@ -28,6 +28,13 @@ ClickStats::ClickStats()
     };
 
     storedPos = Vec2Value(0.f, 0.34f);
+    // Match the Flarial-style keystrokes: dark translucent rounded box.
+    bgColor = ColorValue(0.f, 0.f, 0.f, 0.55f);
+    textColor = ColorValue(0.98f, 0.98f, 0.98f, 1.f);
+    radius = FloatValue(4.5f);
+    textSizeS = FloatValue(20.f);
+    padX = FloatValue(12.f);
+    padY = FloatValue(6.f);
     enabled = BoolValue(true);
 
     // Runs while disabled too, so injected presses are always matched up.

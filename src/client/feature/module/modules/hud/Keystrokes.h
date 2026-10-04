@@ -14,20 +14,19 @@ private:
     ValueType border = BoolValue(false);
     ValueType shiftKey = BoolValue(false);
 
-    ValueType textSize = FloatValue(23.f);
+    // Layout and colours follow Flarial's Keystrokes (flarialmc/dll-oss, AGPL-3.0).
+    ValueType textSize = FloatValue(20.f);
     ValueType keystrokeSize = FloatValue(60.f);
-    ValueType spaceSize = FloatValue(30.f);
-    ValueType mouseButtonHeight = FloatValue(30.f);
-    ValueType padding = FloatValue(3.f);
-    ValueType borderLength = FloatValue(2.f);
+    ValueType padding = FloatValue(2.5f);
+    ValueType borderLength = FloatValue(1.f);
     ValueType lerpSpeed = FloatValue(1.f);
-    ValueType radius = FloatValue(0.f);
+    ValueType radius = FloatValue(4.5f);
 
-    ValueType borderColor = ColorValue(1.f, 1.f, 1.f, 0.5f);
-    ValueType pressedColor = ColorValue(1.f, 1.f, 1.f, 0.5f);
-    ValueType unpressedColor = ColorValue(0.f, 0.f, 0.f, 0.5f);
-    ValueType pressedTextColor = ColorValue(0.f, 0.f, 0.f, 1.f);
-    ValueType unpressedTextColor = ColorValue(1.f, 1.f, 1.f, 1.f);
+    ValueType borderColor = ColorValue(0.f, 0.f, 0.f, 1.f);
+    ValueType pressedColor = ColorValue(0.98f, 0.98f, 0.98f, 0.55f);
+    ValueType unpressedColor = ColorValue(0.f, 0.f, 0.f, 0.55f);
+    ValueType pressedTextColor = ColorValue(0.98f, 0.98f, 0.98f, 1.f);
+    ValueType unpressedTextColor = ColorValue(0.98f, 0.98f, 0.98f, 1.f);
 
     typedef std::function<bool()> GetInputFunc;
 
@@ -52,7 +51,8 @@ private:
         void updateKeyName();
     };
 
-    Vec2 drawKeystroke(DrawUtil& ctx, Vec2 const& pos, Keystroke& stroke);
+    void drawKey(DrawUtil& dc, d2d::Rect const& rc, Stroke& stroke, std::wstring const& label,
+                 std::wstring const& sub = L"");
 
     void onClick(Event& evG);
 

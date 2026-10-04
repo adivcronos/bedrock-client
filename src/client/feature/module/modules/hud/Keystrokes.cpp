@@ -28,12 +28,6 @@ Keystrokes::Keystrokes()
     addSliderSetting("keySize", LocalizeString::get("client.hudmodule.keystrokes.keySize.name"),
                      LocalizeString::get("client.hudmodule.keystrokes.keySize.desc"), keystrokeSize, FloatValue(15.f),
                      FloatValue(90.f), FloatValue(2.f));
-    addSliderSetting("spaceSize", LocalizeString::get("client.hudmodule.keystrokes.spaceSize.name"),
-                     LocalizeString::get("client.hudmodule.keystrokes.spaceSize.desc"), spaceSize, FloatValue(0.f),
-                     FloatValue(90.f), FloatValue(2.f));
-    addSliderSetting("mouseButtonHeight", LocalizeString::get("client.hudmodule.keystrokes.mouseButtonHeight.name"),
-                     LocalizeString::get("client.hudmodule.keystrokes.mouseButtonHeight.desc"), mouseButtonHeight,
-                     FloatValue(15.f), FloatValue(90.f), FloatValue(2.f), "mouseButtons"_istrue);
     addSliderSetting("padding", LocalizeString::get("client.hudmodule.keystrokes.padding.name"),
                      LocalizeString::get("client.hudmodule.keystrokes.padding.desc"), padding, FloatValue(0.f),
                      FloatValue(6.f), FloatValue(0.25f));
@@ -58,20 +52,27 @@ Keystrokes::Keystrokes()
     listen<ClickEvent>((EventListenerFunc)&Keystrokes::onClick);
 }
 
-Vec2 Keystrokes::drawKeystroke(DrawUtil& ctx, Vec2 const& pos, Keystroke& stroke) {
-    d2d::Rect front = { pos.x, pos.y, pos.x + std::get<FloatValue>(keystrokeSize),
-                        pos.y + std::get<FloatValue>(keystrokeSize) };
-    float scale =
-        std::get<FloatValue>(textSize); // ctx.scaleTextInBounds(key, 1 * textSize, (front.right - front.left), 2);
-    ctx.fillRoundedRectangle(
-        front, stroke.col,
-        std::min(std::get<FloatValue>(this->radius).value, std::get<FloatValue>(keystrokeSize) / 2.f));
+void Keystrokes::drawKey(DrawUtil& dc, d2d::Rect const& rc, Stroke& stroke, std::wstring const& label,
+                         std::wstring const& sub) {
+    float rad = (std::min)(std::get<FloatValue>(radius).value, (std::min)(rc.getWidth(), rc.getHeight()) / 2.f);
+    dc.fillRoundedRectangle(rc, stroke.col, rad);
     if (std::get<BoolValue>(border))
-        ctx.drawRoundedRectangle(front, std::get<ColorValue>(borderColor).getMainColor(),
-                                 std::get<FloatValue>(this->radius), std::get<FloatValue>(borderLength));
-    ctx.drawText(front, stroke.keyName, stroke.textCol, Renderer::FontSelection::SecondaryLight,
-                 std::get<FloatValue>(textSize), DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-    return { front.right - front.left, front.bottom - front.top };
+        dc.drawRoundedRectangle(rc, std::get<ColorValue>(borderColor).getMainColor(), rad,
+                                std::get<FloatValue>(borderLength));
+
+    float ts = std::get<FloatValue>(textSize);
+    if (sub.empty()) {
+        dc.drawText(rc, label, stroke.textCol, Renderer::FontSelection::PrimaryRegular, ts,
+                    DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        return;
+    }
+    // Flarial puts the label in the top 65% and the CPS line in the bottom 35%.
+    d2d::Rect top = { rc.left, rc.top, rc.right, rc.top + rc.getHeight() * 0.65f };
+    d2d::Rect bottom = { rc.left, rc.top + rc.getHeight() * 0.55f, rc.right, rc.bottom - rc.getHeight() * 0.05f };
+    dc.drawText(top, label, stroke.textCol, Renderer::FontSelection::PrimaryRegular, ts, DWRITE_TEXT_ALIGNMENT_CENTER,
+                DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    dc.drawText(bottom, sub, stroke.textCol, Renderer::FontSelection::PrimaryRegular, ts * 0.6f,
+                DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 }
 
 void Keystrokes::onClick(Event& evG) {
@@ -154,101 +155,56 @@ void Keystrokes::render(DrawUtil& dc, bool, bool inEditor) {
         }
     }
 
-    // Direction Keys
+    // Flarial layout: W / A S D / LMB RMB / space bar
+    float key = std::get<FloatValue>(keystrokeSize);
+    float gap = std::get<FloatValue>(padding);
+    float row = key + gap;
+    float width = key * 3.f + gap * 2.f;
+    float y = 0.f;
 
-    FloatValue pad = std::get<FloatValue>(padding);
-    Vec2 pos = Vec2(std::get<FloatValue>(keystrokeSize) + pad, 0.f);
-    pos.y += drawKeystroke(dc, pos, keystrokes[0]).y + pad;         // w
-    pos.x -= (drawKeystroke(dc, pos, keystrokes[2]).x + pad);       // s
-    pos.x += (drawKeystroke(dc, pos, keystrokes[1]).x + pad) * 2.f; // a
-    pos = pos + (drawKeystroke(dc, pos, keystrokes[3]));
-
-    // Mouse Buttons
+    drawKey(dc, { row, y, row + key, y + key }, keystrokes[0], keystrokes[0].keyName);
+    y += row;
+    drawKey(dc, { 0.f, y, key, y + key }, keystrokes[1], keystrokes[1].keyName);
+    drawKey(dc, { row, y, row + key, y + key }, keystrokes[2], keystrokes[2].keyName);
+    drawKey(dc, { row * 2.f, y, row * 2.f + key, y + key }, keystrokes[3], keystrokes[3].keyName);
+    y += row;
 
     if (std::get<BoolValue>(this->mouseButtons)) {
-        pos.y += pad;
-        float mbHeight = std::get<FloatValue>(mouseButtonHeight);
-        float rad = std::min(std::get<FloatValue>(this->radius).value, mbHeight / 2.f);
-        {
-            auto& btn = mouseButtons[0];
-            d2d::Rect mb = { 0.f, pos.y, pos.x, pos.y + mbHeight };
-            mb.right -= (mb.getWidth() / 2);
-            dc.fillRoundedRectangle(mb, btn.col, rad);
-
-            std::wstring str = L"LMB";
-
-            if (std::get<BoolValue>(cps)) {
-                str += L"\n" + std::to_wstring(Latite::get().getTimings().getCPSL()) + L" CPS";
-            }
-
-            dc.drawText(mb, str, btn.textCol, Renderer::FontSelection::SecondaryLight, std::get<FloatValue>(textSize),
-                        DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-            if (std::get<BoolValue>(border)) {
-                dc.drawRoundedRectangle(mb, std::get<ColorValue>(this->borderColor).getMainColor(), rad,
-                                        std::get<FloatValue>(this->borderLength));
-            }
-        }
-        {
-            auto& btn = mouseButtons[1];
-            d2d::Rect mb = { 0.f, pos.y, pos.x, pos.y + mbHeight };
-            mb.left += (mb.getWidth() / 2) + pad;
-
-            dc.fillRoundedRectangle(mb, btn.col, rad);
-            std::wstring str = L"RMB";
-
-            if (std::get<BoolValue>(cps)) {
-                str += L"\n" + std::to_wstring(Latite::get().getTimings().getCPSR()) + L" CPS";
-            }
-
-            dc.drawText(mb, str, btn.textCol, Renderer::FontSelection::SecondaryLight, std::get<FloatValue>(textSize),
-                        DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-            if (std::get<BoolValue>(border)) {
-                dc.drawRoundedRectangle(mb, std::get<ColorValue>(this->borderColor).getMainColor(), rad,
-                                        std::get<FloatValue>(this->borderLength));
-            }
-        }
-        pos.y += mbHeight;
+        float mbW = (width - gap) / 2.f;
+        float mbH = key * 0.95f;
+        bool showCps = std::get<BoolValue>(cps);
+        std::wstring lCps = showCps ? std::to_wstring(inEditor ? 0 : Latite::get().getTimings().getCPSL()) + L" CPS" : L"";
+        std::wstring rCps = showCps ? std::to_wstring(inEditor ? 0 : Latite::get().getTimings().getCPSR()) + L" CPS" : L"";
+        drawKey(dc, { 0.f, y, mbW, y + mbH }, mouseButtons[0], L"LMB", lCps);
+        drawKey(dc, { mbW + gap, y, width, y + mbH }, mouseButtons[1], L"RMB", rCps);
+        y += mbH + gap;
     }
 
-    float rad = std::get<FloatValue>(radius);
     if (std::get<BoolValue>(spaceBar)) {
-        pos.y += pad;
-        d2d::Rect spaceBox = { 0.f, pos.y, pos.x, pos.y + std::get<FloatValue>(spaceSize) };
-        dc.fillRoundedRectangle(spaceBox, keystrokes[5].col, rad);
-        dc.flush(false);
-
+        float spH = key * 0.55f;
+        d2d::Rect sp = { 0.f, y, width, y + spH };
+        Stroke& jump = keystrokes[5];
+        float rad = (std::min)(std::get<FloatValue>(radius).value, spH / 2.f);
+        dc.fillRoundedRectangle(sp, jump.col, rad);
         if (std::get<BoolValue>(border))
-            dc.drawRoundedRectangle(spaceBox, std::get<ColorValue>(borderColor).getMainColor(), rad,
+            dc.drawRoundedRectangle(sp, std::get<ColorValue>(borderColor).getMainColor(), rad,
                                     std::get<FloatValue>(borderLength));
-        Vec2 center = spaceBox.center({ 1.f * std::get<FloatValue>(keystrokeSize), 1 });
-        dc.fillRectangle({ center.x, center.y, center.x + (1.f * std::get<FloatValue>(keystrokeSize)), center.y + 1 },
-                         keystrokes[5].textCol);
-        pos.y += spaceBox.getHeight();
-        dc.flush(false);
+        float barW = width * 0.5f;
+        float barH = (std::max)(spH * 0.09f, 1.f);
+        float cx = (width - barW) / 2.f;
+        float cy = y + (spH - barH) / 2.f;
+        dc.fillRectangle({ cx, cy, cx + barW, cy + barH }, jump.textCol);
+        y += spH + gap;
     }
 
     if (std::get<BoolValue>(shiftKey)) {
-        pos.y += pad;
-        d2d::Rect shiftBox = { 0.f, pos.y, pos.x, pos.y + std::get<FloatValue>(spaceSize) };
-        dc.fillRoundedRectangle(shiftBox, keystrokes[4].col, rad);
-        if (std::get<BoolValue>(border))
-            dc.drawRoundedRectangle(shiftBox, std::get<ColorValue>(borderColor).getMainColor(), rad,
-                                    std::get<FloatValue>(borderLength));
-        dc.drawText(shiftBox, keystrokes[4].keyName, keystrokes[4].textCol, Renderer::FontSelection::SecondaryLight,
-                    std::get<FloatValue>(textSize), DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-        pos.y += shiftBox.getHeight();
+        float shH = key * 0.55f;
+        drawKey(dc, { 0.f, y, width, y + shH }, keystrokes[4], keystrokes[4].keyName);
+        y += shH + gap;
     }
 
-    int cpsL = 0;
-    int cpsR = 0;
-
-    if (!inEditor) {
-        cpsL = Latite::get().getTimings().getCPSL();
-        cpsR = Latite::get().getTimings().getCPSR();
-    }
-
-    this->rect.right = rect.left + pos.x;
-    this->rect.bottom = rect.top + pos.y;
+    this->rect.right = rect.left + width;
+    this->rect.bottom = rect.top + (std::max)(y - gap, 0.f);
 };
 
 Keystrokes::Keystroke::Keystroke(std::string const& inputMapping, GetInputFunc getInput)
